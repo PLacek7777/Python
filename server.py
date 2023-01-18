@@ -1,50 +1,50 @@
+import threading
 import socket
-from _thread import *
-import sys
+import time
 
-server = "192.168.1.151"
-port = 5555
+PORT = 5555
+SERVER = socket.gethostbyname(socket.gethostname())
+ADDR = (SERVER, PORT)
 
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+HEADER = 64
+FORMAT = "utf-8"
+DISCONECT_COMADN = "?disconect"
 
-try:
-    s.bind((server, port))
+server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server.bind(ADDR)
 
-except socket.error as e:
-    str(e)
-
-s.listen(2)
-print("SERVER STARTED")
-print("Listening, you can conect")
-
-def client(self):
+def handleClient(conn, addr):
+    t = time.strftime("%H:%M:%S", time.localtime())
+    print(f'[SERVER : {t}]>> New conection: {addr}')
+    conected = True
+    while conected:
+        msgLeangt = conn.recv(HEADER).decode(FORMAT)
+        if msgLeangt:
+            msgLeangt = int(msgLeangt)
+            msg = conn.recv(msgLeangt).decode(FORMAT)
+            if str.lower(msg) == "?disconect":
+                conected = False
+            t = time.strftime("%H:%M:%S", time.localtime())
+            print(f'[{addr} : {t}]>> {msg}')
+            conn.send("Recvd".encode(FORMAT))
     
-    conn.send(str.encode("Conected"))
-
-    reply = ""
-    while True:
-        try:
-            data = conn.recv(2048)
-            reply = data.decode("utf-8")
-            
-            if not data:
-                print("Disconected...")
-                break
-            else:
-                print("RECV>> ", reply)
-                print("SEND>> ", reply)
-
-            conn.sendall(str.encode(reply))
-        except:
-            print("ERROR")
-            print("BREAKING")
-            break
-    print("conection lost")
     conn.close()
+    t = time.strftime("%H:%M:%S", time.localtime())
+    print(f"[SERVER : {t}]>> {addr}: disconected")
+    print(f'[SERVER : {t}]>> Active conections: {threading.active_count()-2}')
 
-while True:
-    conn, addr = s.accept()
-    print("Conection accepted")
-    print(f'>> {addr} <<')
+def start():
+    server.listen()
+    t = time.strftime("%H:%M:%S", time.localtime())
+    print(f"[SERVER : {t}]>> Server started!")
+    print(f'[SERVER : {t}]>> IPv4: {SERVER}')
+    while True:
+        conn, addr = server.accept()
+        thread = threading.Thread(target=handleClient, args=(conn, addr))
+        thread.start()
+        t = time.strftime("%H:%M:%S", time.localtime())
+        print(f'[SERVER : {t}]>> Active conections: {threading.active_count()-1}')
 
-    start_new_thread(client, (conn, ))
+t = time.strftime("%H:%M:%S", time.localtime())
+print(f"[SERVER : {t}]>> Server is starting...")
+start()
