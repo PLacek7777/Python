@@ -1,30 +1,23 @@
+from configparser import ConfigParser
 import socket
+import time
 
-PORT = 5555
-SERVER = "192.168.56.1"
+conf = ConfigParser()
+conf.read("conf.config")
+confData = conf["SERVER"]
+
+PORT = int(confData["PORT"])
+SERVER = confData["SERVER"]
 ADDR = (SERVER, PORT)
-HEADER = 64
-FORMAT = "utf-8"
-DISCONECT_COMADN = "?disconect"
+HEADER = int(confData["HEADER"])
+FORMAT = confData["FORMAT"]
 
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client.connect(ADDR)
 
-def send(msg):
-    message = msg.encode(FORMAT)
-    msgLeanght = len(message)
-    sendLenght = str(msgLeanght).encode(FORMAT)
-    sendLenght += b' ' * (HEADER - len(sendLenght))
-    client.send(sendLenght)
-    client.send(message)
-    print("[SERVER]>> " + client.recv(2048).decode(FORMAT))
-
-print("[CONSLOE]>> To quit type 'q' in input")
-
 while True:
-    inp = input("[INPUT]>> ")
-    if inp == 'q':
-        send(DISCONECT_COMADN)
-        break
-    else:
-        send(inp)
+    message = (str(socket.gethostname())).encode(FORMAT)
+    msgLeanght = len(message)
+    message += b' ' * (HEADER - msgLeanght)
+    client.send(message)
+    time.sleep(120)
