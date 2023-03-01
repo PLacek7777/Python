@@ -7,7 +7,7 @@ conf = ConfigParser()
 conf.read("conf.config")
 confData = conf["SERVER"]
 
-PORT = confData["PORT"]
+PORT = int(confData["PORT"])
 SERVER = ''
 ADDR = (SERVER, PORT)
 
