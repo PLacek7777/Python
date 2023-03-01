@@ -8,7 +8,7 @@ conf.read("conf.config")
 confData = conf["SERVER"]
 
 PORT = int(confData["PORT"])
-SERVER = ''
+SERVER = confData["SERVER"]
 ADDR = (SERVER, PORT)
 
 HEADER = int(confData["HEADER"])
