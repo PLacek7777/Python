@@ -3,32 +3,37 @@ import threading
 import logging
 import socket
 
+# Logging setup
+logging.basicConfig(filename="Server.log", level=logging.DEBUG, format='%(asctime)s >> %(message)s')
+
+# Config file setup
 conf = ConfigParser()
 conf.read("conf.config")
-confData = conf["SERVER"]
+confData = conf["CONF"]
 
-PORT = int(confData["PORT"])
-SERVER = confData["SERVER"]
+# Constants from config file
+PORT = int(confData["SERVER_PORT"])
+SERVER = confData["SERVER_ADRESS"]
 ADDR = (SERVER, PORT)
-
-HEADER = int(confData["HEADER"])
+NAME_HEADER = int(confData["NAME_HEADER"])
 FORMAT = confData["FORMAT"]
 
+# Server setup
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind(ADDR)
 
-logging.basicConfig(filename="Server.log", level=logging.DEBUG, format='%(asctime)s >> %(message)s')
-
+# Client thread
 def handleClient(conn, addr):
-    while True:
-        try:
-            name = conn.recv(HEADER).decode(FORMAT)
-            logging.info(f'Connected: {addr[0]}: {name}')
+    name = conn.recv(NAME_HEADER).decode(FORMAT)
+    logging.info(f'Connected: {addr[0]}: {name}')
+    while True: 
+        try: 
+            check = conn.recv(1)
         except:
             conn.close()
             logging.info(f'Disconnected: {addr[0]}: {name}')
             break
-
+# Server thread (main thread)
 def start():
     server.listen()
     logging.info("Started")
@@ -36,4 +41,5 @@ def start():
         conn, addr = server.accept()
         thread = threading.Thread(target=handleClient, args=(conn, addr))
         thread.start()
+# Server startup
 start()
